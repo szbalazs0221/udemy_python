@@ -1,6 +1,4 @@
 # This is a text based BlackJack game! Have fun!!
-
-
 import random
 
 # Global variables
@@ -11,11 +9,12 @@ clubs = "\u2660"
 suits = (spades, hearts, diamonds, clubs)
 ranks = ('A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K')
 values = {'A': 11, '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9, '10': 10, 'J': 10, 'Q': 10, 'K': 10}
-
-
+player_chip = 0
+pool = 0
 # Create classes
 
-class Card():
+
+class Card:
 
     def __init__(self, suit, rank):
         self.suit = suit
@@ -25,7 +24,7 @@ class Card():
         return str(self.suit) + str(self.rank)
 
 
-class Deck():
+class Deck:
 
     def __init__(self):
         self.cards = []
@@ -34,16 +33,19 @@ class Deck():
                 self.cards.append(Card(suit, rank))
 
     def shuffle_deck(self):
-        random.shuffle(self.cards)
+        return random.shuffle(self.cards)
 
     def __str__(self):
         decklist = ""
         for i in self.cards:
-            decklist += ' ' + i.__str__()
-        return decklist
+            decklist += i.__str__() + ' '
+        return str(decklist)
+
+    def deal(self):
+        return self.cards.pop()
 
 
-class Hand():
+class Hand:
 
     def __init__(self):
         self.cards = []
@@ -54,24 +56,37 @@ class Hand():
         self.cards.append(card)
         if card.rank == 'A':
             self.ace = True
+        else:
+            self.ace = False
         self.value += values[card.rank]
 
-    def __str__(self):
-        current_hand = []
-        for card in self.cards:
-            current_hand += ' ' + card.__str__()
-        return current_hand
+    def ace_value(self):
+        if self.value > 21 and self.ace:
+            self.value -= 10
+            self.ace = False
+        print(self.value)
 
+    def __str__(self):
+        current_hand = ""
+        for card in self.cards:
+            current_hand +=card.__str__()+' '
+        return f'Your hand: {current_hand}\nValue: {self.value}'
 
 # Other methods
 
-def text():
+def game_step():
     pass
 
+def place_bet(bet):
+    global player_chip
+    player_chip -= bet
+    return bet
 
-def setup_game():
-    pass
-
+def initial_setup():
+    print('Hello, welcome to Blackjack! Please check the rules if you are not familiar with them -> http://hu.blackjack.org/blackjack-szabalyok/'
+          'Please take a seat and decide how much money you want to bring in!')
+    player_chip=input()
+    print('Deck shuffled')
 
 def play_blackjack():
     pass
@@ -83,3 +98,6 @@ if __name__ == "__main__":
     d.shuffle_deck()
     print(d)
     h = Hand()
+    h.add_card(d.deal())
+    h.add_card(d.deal())
+    print(h)
