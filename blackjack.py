@@ -8,7 +8,7 @@ diamonds = "\u2666"
 clubs = "\u2660"
 suits = (spades, hearts, diamonds, clubs)
 ranks = ('A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K')
-values = {'A': 11, '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9, '10': 10, 'J': 10, 'Q': 10, 'K': 10}
+values = {'A': 1, '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9, '10': 10, 'J': 10, 'Q': 10, 'K': 10}
 player_chip = 0
 pool = 0
 # Create classes
@@ -56,37 +56,44 @@ class Hand:
         self.cards.append(card)
         if card.rank == 'A':
             self.ace = True
-        else:
-            self.ace = False
         self.value += values[card.rank]
 
-    def ace_value(self):
-        if self.value > 21 and self.ace:
-            self.value -= 10
-            self.ace = False
-        print(self.value)
+    def calc_value(self):
+        if self.value < 12 and self.ace:
+            self.value += 10
+        return self.value
 
     def __str__(self):
         current_hand = ""
         for card in self.cards:
             current_hand +=card.__str__()+' '
-        return f'Your hand: {current_hand}\nValue: {self.value}'
+        return f'Your hand: {current_hand}\nValue: {self.calc_value()}'
 
 # Other methods
 
+
+def create_decks(amount):
+    pass
+
+
 def game_step():
     pass
+
 
 def place_bet(bet):
     global player_chip
     player_chip -= bet
     return bet
 
+
 def initial_setup():
-    print('Hello, welcome to Blackjack! Please check the rules if you are not familiar with them -> http://hu.blackjack.org/blackjack-szabalyok/'
+    print('Hello, welcome to Blackjack! Please check the rules if you are not familiar with them -> '
+          'http://hu.blackjack.org/blackjack-szabalyok/ ' 
           'Please take a seat and decide how much money you want to bring in!')
-    player_chip=input()
-    print('Deck shuffled')
+
+    '''player_chip=input()
+    print('Deck shuffled')'''
+
 
 def play_blackjack():
     pass
@@ -94,10 +101,13 @@ def play_blackjack():
 
 # main function
 if __name__ == "__main__":
+    initial_setup()
     d = Deck()
     d.shuffle_deck()
     print(d)
     h = Hand()
     h.add_card(d.deal())
     h.add_card(d.deal())
+    h.add_card(d.deal())
+    print(d)
     print(h)
