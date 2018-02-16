@@ -1,5 +1,12 @@
 # This is a text based BlackJack game! Have fun!!
+
+'''still left:
+-clearing output
+-align text (quit should be only an option if is is feasible)
+'''
+
 import random
+import time
 
 # Global variables
 spades = "\u2660"
@@ -16,8 +23,7 @@ deck = None
 
 player_chip = 100
 pool = 0
-leave = False
-end_turn = False
+end = False
 
 
 # Classes
@@ -79,11 +85,14 @@ class Hand:
         if not self.hidden:
             for card in self.cards:
                 current_hand += card.__str__()+' '
-            return f'Hand: {current_hand}\nValue: {self.calc_value()}'
+            return f'Hand:\n{current_hand}\nValue: {self.calc_value()}'
         # Need to handle if Ace value turns to 10, hidden showing calculates with 1
+        elif self.ace:
+            current_hand = self.cards[0].__str__() + ' ??'
+            return f'Hand:\n{current_hand}\nValue: ~{self.calc_value()-11}'
         else:
             current_hand = self.cards[0].__str__() + ' ??'
-            return f'Hand: {current_hand}\nValue: {self.calc_value()-values[self.cards[1].rank]}'
+            return f'Hand:\n{current_hand}\nValue: ~{self.calc_value()-values[self.cards[1].rank]}'
 
 
 # Other methods
@@ -93,63 +102,70 @@ def welcome():
 
 
 def total_money():
-    print(f"You have {player_chip} money!")
-
-
-def create_decks():
-    pass
-
-
-def game_step():
-    pass
+    print(f"New turn!\n__________________\nYou have {player_chip} money!")
 
 
 def hit():
     global player, deck
     player.add_card(deck.deal())
     player.calc_value()
-    if player.value < 21:
-        show_hand(dealer.hidden)
+    if not busted(player):
+        show_hand()
         player_input()
-    elif player.value > 21:
-        print('Busted!')
+    else:
+        dealer.show()
+        show_hand()
+        print('You are Busted!\n')
 
 
-def busted():
-    pass
+def busted(who):
+    global end
+    if who.calc_value() > 21:
+        end = True
+        return True
+    else:
+        return False
 
 
 def stand():
-    global dealer, deck
+    global dealer, deck, end
     dealer.show()
     show_hand()
-    while dealer.calc_value <= 17:
+    time.sleep(2)
+    while dealer.calc_value() < 17:
         dealer.add_card(deck.deal())
         show_hand()
-    evaluate_round()
+        time.sleep(2)
+        if busted(dealer):
+            print('Dealer Busted!\n')
+            break
+    end = True
 
 
 def show_hand():
     global player, dealer
-    print(f'Your {player}')
-    print(f'Dealer {dealer}')
+    print('__________________')
+    print(f'Your {player}\n')
+    print(f'Dealer {dealer}\n')
 
 
-def evaluate_round():
-    global player, dealer, pool, player_chip
-    if player.calc_value() > dealer.calc_value():
-        player_chip += pool * 2
-        print(f'Player win {pool * 2}!')
-        pool = 0
+def win():
+    global pool, player_chip
+    print(f'Player win {pool * 2}!\n')
+    player_chip += pool * 2
+    pool = 0
+
+
+def lose():
+    global pool
+    print(f'Dealer won! Better Luck next time!\n')
+    pool = 0
 
 
 def place_bet():
     global player_chip, pool
     bet = int(input('Please place your bet!: '))
-    if player_chip == 0:
-        print("You have no more money! Game Over!")
-        quit()
-    elif player_chip >= bet > 0:
+    if player_chip >= bet > 0:
         player_chip -= bet
         pool += bet
     elif bet <= 0:
@@ -169,48 +185,73 @@ def has_blackjack(hand):
 
 
 def player_input():
-    global leave
-    choice = str(input("Enter 'h' for hit, 's' for stand, 'q' for quit!: "))
-    if choice.lower().startswith('h'):
-        hit()
-    elif choice.lower().startswith('s'):
-        stand()
-    elif choice.lower().startswith('q'):
-        print('Thank you for participating!')
-        quit()
-        leave = True
+    if not end:
+        choice = str(input("Enter 'h' for hit, 's' for stand!: "))
+        if choice.lower().startswith('h'):
+            hit()
+        elif choice.lower().startswith('s'):
+            stand()
+        else:
+            print('Please add a Valid value!')
+            player_input()
     else:
-        print('Please add a Valid value!')
-        player_input()
+        choice = str(input("Do you want to quit?\nEnter (y/n): "))
+        if choice.lower().startswith('y'):
+            print('Thank you for participating!')
+            quit()
+        elif choice.lower().startswith('n'):
+            start_turn()
+        else:
+            print('Please add a Valid value!')
+            player_input()
 
 
 def start_turn():
-    global player, dealer, deck
-    while not leave:
+    global player, dealer, deck, end
+    end = False
+    while not end:
         total_money()
         place_bet()
 
         player = Hand()
+        # show whole hand of the player
         player.show()
 
         dealer = Hand()
-
+        # initial deal for Player - 2 cards
         player.add_card(deck.deal())
         player.add_card(deck.deal())
-
+        # initial deal for Dealer - 2 cards
         dealer.add_card(deck.deal())
         dealer.add_card(deck.deal())
 
         show_hand()
         if has_blackjack(player):
-            break
+            win()
         player_input()
+
+
+def end_turn():
+    global player, dealer, pool, player_chip
+    if busted(player):
+        lose()
+    elif busted(dealer):
+        win()
+    elif player.calc_value() >= dealer.calc_value():
+        win()
+    else:
+        lose()
+    if player_chip == 0:
+        print("You have no more money! Game Over!")
+        quit()
+    player_input()
 
 
 def initial_setup():
     global player, dealer, deck
     deck = Deck()
     print('Shuffling Deck...')
+    time.sleep(2)
     deck.shuffle_deck()
     print('Shuffling done...\n')
 
@@ -219,6 +260,7 @@ def blackjack():
     welcome()
     initial_setup()
     start_turn()
+    end_turn()
 
 
 # main function
