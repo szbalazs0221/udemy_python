@@ -1,12 +1,13 @@
 # This is a text based BlackJack game! Have fun!!
 
-'''still left:
--clearing output
--align text (quit should be only an option if is is feasible)
-'''
+# still left:
+# define deck rearrange
+# add exceptions
+
 
 import random
 import time
+import os
 
 # Global variables
 spades = "\u2660"
@@ -96,7 +97,12 @@ class Hand:
 
 
 # Other methods
+def clear():
+    os.system('cls')
+
+
 def welcome():
+    clear()
     print('Hello, welcome to Blackjack!\n\nPlease check the rules if you are not familiar with them -> '
           'http://hu.blackjack.org/blackjack-szabalyok/\n')
 
@@ -106,7 +112,8 @@ def total_money():
 
 
 def hit():
-    global player, deck
+    global player, deck, end
+    # time.sleep(2)
     player.add_card(deck.deal())
     player.calc_value()
     if not busted(player):
@@ -115,7 +122,11 @@ def hit():
     else:
         dealer.show()
         show_hand()
+        time.sleep(1.5)
+        clear()
         print('You are Busted!\n')
+        end = True
+        player_input()
 
 
 def busted(who):
@@ -137,19 +148,25 @@ def stand():
         show_hand()
         time.sleep(2)
         if busted(dealer):
+            clear()
             print('Dealer Busted!\n')
+            time.sleep(1.5)
             break
     end = True
+    end_turn()
 
 
 def show_hand():
+    clear()
     global player, dealer
     print('__________________')
-    print(f'Your {player}\n')
-    print(f'Dealer {dealer}\n')
+    print(f'Your {player}')
+    print('__________________')
+    print(f"Dealer's {dealer}\n")
 
 
 def win():
+    clear()
     global pool, player_chip
     print(f'Player win {pool * 2}!\n')
     player_chip += pool * 2
@@ -157,8 +174,17 @@ def win():
 
 
 def lose():
+    clear()
     global pool
     print(f'Dealer won! Better Luck next time!\n')
+    pool = 0
+
+
+def draw():
+    clear()
+    global pool, player_chip
+    print('Draw!\n')
+    player_chip += pool
     pool = 0
 
 
@@ -200,13 +226,14 @@ def player_input():
             print('Thank you for participating!')
             quit()
         elif choice.lower().startswith('n'):
-            start_turn()
+            clear()
+            game()
         else:
             print('Please add a Valid value!')
             player_input()
 
 
-def start_turn():
+def game():
     global player, dealer, deck, end
     end = False
     while not end:
@@ -237,8 +264,10 @@ def end_turn():
         lose()
     elif busted(dealer):
         win()
-    elif player.calc_value() >= dealer.calc_value():
+    elif player.calc_value() > dealer.calc_value():
         win()
+    elif player.calc_value() == dealer.calc_value():
+        draw()
     else:
         lose()
     if player_chip == 0:
@@ -254,13 +283,13 @@ def initial_setup():
     time.sleep(2)
     deck.shuffle_deck()
     print('Shuffling done...\n')
+    time.sleep(1)
 
 
 def blackjack():
     welcome()
     initial_setup()
-    start_turn()
-    end_turn()
+    game()
 
 
 # main function
