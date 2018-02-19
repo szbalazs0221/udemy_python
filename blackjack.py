@@ -1,11 +1,8 @@
 # This is a text based BlackJack game! Have fun!!
 
 # still left:
-# define deck rearrange at every end turn
 # add exceptions
-# place_bet() Stringhandling excpetion
-# rewrite hit() and stand()
-
+# fix bug: 3 Aces with 9 value = 12
 
 import random
 import time
@@ -90,10 +87,11 @@ class Hand:
             for card in self.cards:
                 current_hand += card.__str__() + ' '
             return f'Hand:\n{current_hand}\nValue: {self.calc_value()}'
-        # Need to handle if Ace value turns to 10, hidden showing calculates with 1
+        # If Ace value turns to 10, hidden showing calculates with 1
         elif self.ace:
             current_hand = self.cards[0].__str__() + ' ??'
             return f'Hand:\n{current_hand}\nValue: ~{self.calc_value()-11}'
+        # If we want to hide the second card and value at the beginning
         else:
             current_hand = self.cards[0].__str__() + ' ??'
             return f'Hand:\n{current_hand}\nValue: ~{self.calc_value()-values[self.cards[1].rank]}'
@@ -108,6 +106,12 @@ def welcome():
     clear()
     print('Hello, welcome to Blackjack!\n\nPlease check the rules if you are not familiar with them -> '
           'http://hu.blackjack.org/blackjack-szabalyok/\n')
+
+
+def dealing_cards_notification():
+    clear()
+    print('Dealing Cards...')
+    time.sleep(2)
 
 
 def total_money():
@@ -126,7 +130,6 @@ def hit():
         show_hand()
         time.sleep(1.5)
         clear()
-        print('You are Busted!\n')
         end = True
         end_turn()
 
@@ -145,17 +148,16 @@ def stand():
     dealer.show()
     show_hand()
     time.sleep(2)
-    while dealer.calc_value() < 17:
-        dealer.add_card(deck.deal())
-        show_hand()
-        time.sleep(2)
-        if busted(dealer):
-            clear()
-            print('Dealer Busted!\n')
-            time.sleep(1.5)
-            break
-    end = True
-    end_turn()
+    if has_blackjack(dealer):
+        end_turn()
+    else:
+        while dealer.calc_value() < 17:
+            dealer.add_card(deck.deal())
+            show_hand()
+            time.sleep(2)
+        clear()
+        end = True
+        end_turn()
 
 
 def show_hand():
@@ -206,7 +208,12 @@ def place_bet():
 
 
 def has_blackjack(hand):
+    global end
     if hand.value == 21 and hand.ace and len(player.cards) == 2:
+        clear()
+        end = True
+        print('Blackjack!')
+        time.sleep(1.5)
         return True
     else:
         return False
@@ -239,7 +246,6 @@ def game():
     global player, dealer, deck, end
     end = False
     while not end:
-        print(deck)
         total_money()
         place_bet()
 
@@ -248,6 +254,7 @@ def game():
         player.show()
 
         dealer = Hand()
+        dealing_cards_notification()
         # initial deal for Player - 2 cards
         player.add_card(deck.deal())
         player.add_card(deck.deal())
@@ -256,16 +263,22 @@ def game():
         dealer.add_card(deck.deal())
 
         show_hand()
+        time.sleep(2)
         if has_blackjack(player):
-            win()
-        player_input()
+            end_turn()
+        else:
+            player_input()
 
 
 def end_turn():
     global player, dealer, pool, player_chip, deck
     if busted(player):
+        print('You are Busted!\n')
+        time.sleep(1.5)
         lose()
     elif busted(dealer):
+        print('Dealer Busted!\n')
+        time.sleep(1.5)
         win()
     elif player.calc_value() > dealer.calc_value():
         win()
@@ -287,7 +300,7 @@ def initial_setup():
     print('Shuffling Deck...')
     time.sleep(2)
     deck.shuffle_deck()
-    print('Shuffling done...\n')
+    print('Shuffling Done...\n')
     time.sleep(1)
 
 
