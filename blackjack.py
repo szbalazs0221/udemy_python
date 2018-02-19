@@ -1,8 +1,10 @@
 # This is a text based BlackJack game! Have fun!!
 
 # still left:
-# define deck rearrange
+# define deck rearrange at every end turn
 # add exceptions
+# place_bet() Stringhandling excpetion
+# rewrite hit() and stand()
 
 
 import random
@@ -41,10 +43,7 @@ class Card:
 class Deck:
 
     def __init__(self):
-        self.cards = []
-        for suit in suits:
-            for rank in ranks:
-                self.cards.append(Card(suit, rank))
+        self.cards = [Card(suit, rank) for suit in suits for rank in ranks]
 
     def shuffle_deck(self):
         return random.shuffle(self.cards)
@@ -57,6 +56,10 @@ class Deck:
 
     def deal(self):
         return self.cards.pop(0)
+
+    def rearrange(self, some_card):
+        random.shuffle(some_card)
+        return self.cards.extend(some_card)
 
 
 class Hand:
@@ -85,7 +88,7 @@ class Hand:
         current_hand = ""
         if not self.hidden:
             for card in self.cards:
-                current_hand += card.__str__()+' '
+                current_hand += card.__str__() + ' '
             return f'Hand:\n{current_hand}\nValue: {self.calc_value()}'
         # Need to handle if Ace value turns to 10, hidden showing calculates with 1
         elif self.ace:
@@ -113,7 +116,6 @@ def total_money():
 
 def hit():
     global player, deck, end
-    # time.sleep(2)
     player.add_card(deck.deal())
     player.calc_value()
     if not busted(player):
@@ -126,7 +128,7 @@ def hit():
         clear()
         print('You are Busted!\n')
         end = True
-        player_input()
+        end_turn()
 
 
 def busted(who):
@@ -237,11 +239,12 @@ def game():
     global player, dealer, deck, end
     end = False
     while not end:
+        print(deck)
         total_money()
         place_bet()
 
         player = Hand()
-        # show whole hand of the player
+        # will show whole hand of the player, Dealer second card will be hidden
         player.show()
 
         dealer = Hand()
@@ -259,7 +262,7 @@ def game():
 
 
 def end_turn():
-    global player, dealer, pool, player_chip
+    global player, dealer, pool, player_chip, deck
     if busted(player):
         lose()
     elif busted(dealer):
@@ -273,6 +276,8 @@ def end_turn():
     if player_chip == 0:
         print("You have no more money! Game Over!")
         quit()
+    deck.rearrange(player.cards)
+    deck.rearrange(dealer.cards)
     player_input()
 
 
@@ -286,12 +291,11 @@ def initial_setup():
     time.sleep(1)
 
 
-def blackjack():
+def play_blackjack():
     welcome()
     initial_setup()
     game()
 
 
-# main function
 if __name__ == "__main__":
-    blackjack()
+    play_blackjack()
