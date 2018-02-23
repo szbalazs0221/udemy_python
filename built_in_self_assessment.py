@@ -7,6 +7,7 @@ def word_lengths(phrase):
     # return list(map(lambda word: len(word), phrase.split(' ')))
     return list(map(len,phrase.split()))
 
+
 print(word_lengths('How long are the words in this phrase'), '\n')
 
 
